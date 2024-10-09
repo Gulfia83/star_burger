@@ -118,3 +118,13 @@ class OrderAdmin(admin.ModelAdmin):
         OrderItemInline
     ]
     list_display = ['firstname', 'lastname', 'address']
+
+    def save_formset(self, request, form, formset, change):
+        order_items = formset.save(commit=False)
+        for item in order_items:
+            if item.price == 0.00:
+                product = Product.objects.get(id=item.product.id)
+                item.price = product.price
+                item.save()
+            else:
+                item.save()
