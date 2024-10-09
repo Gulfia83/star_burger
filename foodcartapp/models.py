@@ -165,14 +165,24 @@ class Order(models.Model):
     )
     comments = models.TextField(max_length=200,
                                 blank=True,
-                                null=True,
                                 verbose_name='Комментарии')
+    registered_at = models.DateTimeField(verbose_name='Дата создания',
+                                         auto_now=True,
+                                         db_index=True)
+    called_at = models.DateTimeField(verbose_name='Дата звонка',
+                                     blank=True,
+                                     null=True,
+                                     db_index=True)
+    delivered_at = models.DateTimeField(verbose_name='Дата доставки',
+                                        blank=True,
+                                        null=True,
+                                        db_index=True)
     status = models.CharField(max_length=30,
                               choices=STATUSES,
                               default='under',
                               verbose_name='Статус заказа',
                               db_index=True)
-    
+
     objects = OrderQuerySet.as_manager()
 
     class Meta:
@@ -205,7 +215,6 @@ class OrderItem(models.Model):
         max_digits=8,
         decimal_places=2,
         validators=[MinValueValidator(0)],
-        default=0
     )
 
     class Meta:
