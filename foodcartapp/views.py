@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
+from rest_framework import status
 from django.http import JsonResponse
 from django.templatetags.static import static
 
@@ -60,7 +60,13 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     data = request.data
-    print(data)
+    products = data.get('products')
+    if not products or not isinstance(products, list):
+        return Response(
+            {'error': 'Products key not presented or not list'},
+            status=status.HTTP_400_BAD_REQUEST
+            )
+
     order = Order.objects.create(
         firstname=data['firstname'],
         lastname=data['lastname'],
