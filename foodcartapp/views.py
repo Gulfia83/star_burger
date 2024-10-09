@@ -1,12 +1,24 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.serializers import ModelSerializer
 from django.http import JsonResponse
 from django.templatetags.static import static
-from phonenumbers import parse, is_valid_number
-from phonenumbers.phonenumberutil import NumberParseException
 
 from .models import Order, OrderItem, Product
+
+
+class OrderItemSerializer(ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'quantity']
+
+
+class OrderSerializer(ModelSerializer):
+    products = OrderItemSerializer(many=True, allow_empty=False)
+
+    class Meta:
+        model = Order
+        fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
 
 
 def banners_list_api(request):
