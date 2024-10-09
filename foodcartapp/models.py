@@ -163,6 +163,10 @@ class Order(models.Model):
         verbose_name='Адрес',
         db_index=True
     )
+    comments = models.TextField(max_length=200,
+                                blank=True,
+                                null=True,
+                                verbose_name='Комментарии')
     status = models.CharField(max_length=30,
                               choices=STATUSES,
                               default='under',
