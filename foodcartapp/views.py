@@ -1,24 +1,10 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.serializers import ModelSerializer
 from django.http import JsonResponse
 from django.templatetags.static import static
 
 from .models import Order, OrderItem, Product
-
-
-class OrderItemSerializer(ModelSerializer):
-    class Meta:
-        model = OrderItem
-        fields = ['product', 'quantity']
-
-
-class OrderSerializer(ModelSerializer):
-    products = OrderItemSerializer(many=True, allow_empty=False)
-
-    class Meta:
-        model = Order
-        fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
+from .serializers import OrderSerializer
 
 
 def banners_list_api(request):
@@ -73,84 +59,16 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-    data = request.data
-    products = data.get('products')
-    firstname = data.get('firstname')
-    lastname = data.get('lastname')
-    phonenumber = data.get('phonenumber')
-    address = data.get('address')
-    if not products or not isinstance(products, list):
-        return Response(
-            {"error": "Products key not presented or not list"},
-            status=status.HTTP_400_BAD_REQUEST
-            )
-    for product in products:
-        try:
-            Product.objects.get(id=product['product'])
-        except Product.DoesNotExist:
-            return Response(
-                {"error": "Product ID doesn't exist"},
-                status=status.HTTP_400_BAD_REQUEST
-                )
-    if not firstname or not isinstance(firstname, str):
-        return Response(
-            {"error": "The key 'firstname' is not specified or not str."},
-            status=status.HTTP_400_BAD_REQUEST
-            )
-    if not lastname or not isinstance(lastname, str):
-        return Response(
-            {"error": "The key 'lastname' is not specified or not str."},
-            status=status.HTTP_400_BAD_REQUEST
-            )
-    if not phonenumber or not isinstance(phonenumber, str):
-        return Response(
-            {"error": "The key 'phonenumber' is not specified or not str."},
-            status=status.HTTP_400_BAD_REQUEST
-            )
-    try:
-        parsed_number = parse(phonenumber)
-    except NumberParseException:
-        return Response(
-            {"error": "The phonenumber is not valid"},
-            status=status.HTTP_406_NOT_ACCEPTABLE
-            )
-    if not is_valid_number(parsed_number):
-        return Response(
-            {"error": "The phonenumber is not valid"},
-            status=status.HTTP_406_NOT_ACCEPTABLE
-            )
-    if not address or not isinstance(address, str):
-        return Response(
-            {"error": "The key 'address' is not specified or not str."},
-            status=status.HTTP_400_BAD_REQUEST
-            )
-    else:
-        order = Order.objects.create(
-            firstname=firstname,
-            lastname=lastname,
-            phonenumber=phonenumber,
-            address=address
-            )
-        order_items = [
-            OrderItem.objects.create(
-                product=Product.objects.get(id=product['product']),
-                order=order,
-                quantity=product['quantity']
-            ) for product in products
-        ]
-
+    serializer = OrderSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
     order = Order.objects.create(
-        firstname=data['firstname'],
-        lastname=data['lastname'],
-        phonenumber=data['phonenumber'],
-        address=data['address']
+        firstname=serializer.validated_data['firstname'],
+        lastname=serializer.validated_data['lastname'],
+        phonenumber=serializer.validated_data['phonenumber'],
+        address=serializer.validated_data['address']
         )
-    order_items = [
-        OrderItem.objects.create(
-            product=Product.objects.get(id=product['product']),
-            order=order,
-            quantity=product['quantity']
-        ) for product in data['products']
-    ]
+    products_fields = serializer.validated_data['products']
+    products = [OrderItem(order=order, **fields) for fields in products_fields]
+    OrderItem.objects.bulk_create(products)
 
-    return Response(data)
+    return Response(serializer.data, status=200)
