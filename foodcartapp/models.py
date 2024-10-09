@@ -4,6 +4,14 @@ from django.db.models import Sum, F
 from phonenumber_field.modelfields import PhoneNumberField
 
 
+STATUSES = [
+    ('under', 'на рассмотрении'),
+    ('todo', 'принят в работу'),
+    ('delivery', 'передан в доставку'),
+    ('end', 'завершен')
+]
+
+
 class OrderQuerySet(models.QuerySet):
     def get_total_price(self):
         total_price = self.annotate(
@@ -155,7 +163,12 @@ class Order(models.Model):
         verbose_name='Адрес',
         db_index=True
     )
-
+    status = models.CharField(max_length=30,
+                              choices=STATUSES,
+                              default='under',
+                              verbose_name='Статус заказа',
+                              db_index=True)
+    
     objects = OrderQuerySet.as_manager()
 
     class Meta:
