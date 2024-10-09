@@ -12,6 +12,13 @@ STATUSES = [
 ]
 
 
+PAYMENTS = [
+    ('cash', 'наличностью'),
+    ('noncash', 'электронно'),
+    ('unspecified', 'не указано')
+]
+
+
 class OrderQuerySet(models.QuerySet):
     def get_total_price(self):
         total_price = self.annotate(
@@ -177,6 +184,11 @@ class Order(models.Model):
                                         blank=True,
                                         null=True,
                                         db_index=True)
+    payment_method = models.CharField(max_length=30,
+                                      choices=PAYMENTS,
+                                      default='unspecified',
+                                      verbose_name='Способ оплаты',
+                                      db_index=True)
     status = models.CharField(max_length=30,
                               choices=STATUSES,
                               default='under',
