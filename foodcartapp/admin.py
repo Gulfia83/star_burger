@@ -1,7 +1,9 @@
 from django.contrib import admin
+from django.http import HttpResponseRedirect
 from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from .models import Product
 from .models import ProductCategory
@@ -9,6 +11,7 @@ from .models import Restaurant
 from .models import RestaurantMenuItem
 from .models import Order
 from .models import OrderItem
+from star_burger.settings import ALLOWED_HOSTS
 
 
 class RestaurantMenuItemInline(admin.TabularInline):
@@ -128,3 +131,13 @@ class OrderAdmin(admin.ModelAdmin):
                 item.save()
             else:
                 item.save()
+
+    def response_post_save_change(self, request, obj):
+        res = super().response_post_save_change(request, obj)
+        if "next" in request.GET and url_has_allowed_host_and_scheme(
+            request.GET['next'],
+            ALLOWED_HOSTS
+        ):
+            return HttpResponseRedirect(request.GET['next'])
+        else:
+            return res
