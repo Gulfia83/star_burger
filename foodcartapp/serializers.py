@@ -28,3 +28,16 @@ class OrderSerializer(ModelSerializer):
             'address',
             'products'
             ]
+        
+    def create(self, validated_data):
+        order = Order.objects.create(
+            firstname=validated_data['firstname'],
+            lastname=validated_data['lastname'],
+            phonenumber=validated_data['phonenumber'],
+            address=validated_data['address']
+            )
+        products_fields = validated_data['products']
+        products = [OrderItem(order=order, **fields) for fields in products_fields]
+        OrderItem.objects.bulk_create(products)
+
+        return order

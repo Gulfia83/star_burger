@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django.http import JsonResponse
 from django.templatetags.static import static
 
-from .models import Order, OrderItem, Product
+from .models import Product
 from .serializers import OrderSerializer
 
 
@@ -63,14 +63,6 @@ def product_list_api(request):
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    order = Order.objects.create(
-        firstname=serializer.validated_data['firstname'],
-        lastname=serializer.validated_data['lastname'],
-        phonenumber=serializer.validated_data['phonenumber'],
-        address=serializer.validated_data['address']
-        )
-    products_fields = serializer.validated_data['products']
-    products = [OrderItem(order=order, **fields) for fields in products_fields]
-    OrderItem.objects.bulk_create(products)
+    serializer.save()
 
     return Response(serializer.data, status=200)
