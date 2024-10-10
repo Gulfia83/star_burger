@@ -1,5 +1,10 @@
+from django.utils import timezone
+
 from rest_framework.serializers import ModelSerializer
 from .models import Order, OrderItem
+from places.models import Place
+from places.views import fetch_coordinates
+from star_burger.settings import YANDEX_GEOCODER_API_KEY
 
 
 class OrderItemSerializer(ModelSerializer):
@@ -28,7 +33,7 @@ class OrderSerializer(ModelSerializer):
             'address',
             'products'
             ]
-        
+
     def create(self, validated_data):
         order = Order.objects.create(
             firstname=validated_data['firstname'],
@@ -39,5 +44,18 @@ class OrderSerializer(ModelSerializer):
         products_fields = validated_data['products']
         products = [OrderItem(order=order, **fields) for fields in products_fields]
         OrderItem.objects.bulk_create(products)
+
+        place, created = Place.objects.update_or_create(
+            address=order.address,
+            defaults={'created_date': timezone.now()}
+            )
+        if created:
+            customer_coordinates = fetch_coordinates(
+                YANDEX_GEOCODER_API_KEY,
+                order.address
+            )
+
+            place.lon, place.lat = customer_coordinates
+            place.save()
 
         return order

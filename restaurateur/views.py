@@ -118,30 +118,18 @@ def view_orders(request):
                 .values_list('restaurant__name', flat=True)
         order.restaurants = available_restaurants
 
-        order_place, created = Place.objects.get_or_create(address=order.address)
-        if created:
-            customer_coordinates = fetch_coordinates(
-                YANDEX_GEOCODER_API_KEY,
-                order.address)
-            order_place.lon, order_place.lat = customer_coordinates
-            order_place.save()
+        order_place = places.get(address=order.address)
+        customer_coordinates = order_place.lat, order_place.lon
             
         restaurant_distances = []
         for restaurant in order.restaurants:
             restaurant = restaurants.get(name=restaurant)
-            restaurant_place, created = Place.objects.get_or_create(address=restaurant.address)
-            if created:
-                restaurant_coordinates = fetch_coordinates(
-                    YANDEX_GEOCODER_API_KEY,
-                    restaurant.address)
-                restaurant_place.lon, restaurant_place.lat = restaurant_coordinates
-                restaurant_place.save()
-
-            restaurant_distance = round(distance.distance(
-                (order_place.lat,
-                 order_place.lon),
-                (restaurant_place.lat,
-                 restaurant_place.lon)).km, 2)
+            restaurant_place = places.get(address=restaurant.address)
+            restaurant_coordinates = restaurant_place.lat, restaurant_place.lon
+            if customer_coordinates and restaurant_coordinates:
+                restaurant_distance = round(distance.distance(
+                    customer_coordinates,
+                    restaurant_coordinates).km, 2)
             restaurant_distances.append((restaurant, restaurant_distance))
         order.restaurant_distances = sorted(
                     restaurant_distances, key=lambda x: x[1]
