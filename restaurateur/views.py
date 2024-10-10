@@ -13,6 +13,9 @@ from django.contrib.auth import views as auth_views
 
 
 from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
+from places.models import Place
+from places.views import fetch_coordinates
+from star_burger.settings import YANDEX_GEOCODER_API_KEY
 
 
 class Login(forms.Form):
@@ -94,37 +97,19 @@ def view_restaurants(request):
     })
 
 
-def fetch_coordinates(apikey, address):
-    base_url = "https://geocode-maps.yandex.ru/1.x"
-    response = requests.get(base_url, params={
-        "geocode": address,
-        "apikey": apikey,
-        "format": "json",
-    })
-    response.raise_for_status()
-    found_places = response.json()['response']['GeoObjectCollection']['featureMember']
-
-    if not found_places:
-        return None
-
-    most_relevant = found_places[0]
-    lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
-    return lon, lat
-
-
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects\
-        .exclude(status__in=['end'])\
-        .prefetch_related('restaurant', 'items')\
-        .get_total_price()\
-        .order_by('status')
+    orders = Order.objects \
+        .exclude(status__in=['end']) \
+        .prefetch_related('restaurant', 'items') \
+        .order_by('status').get_total_price()
 
     menu_items = RestaurantMenuItem.objects\
         .filter(availability=True)\
         .prefetch_related('restaurant',
                           'product')
     restaurants = Restaurant.objects.all()
+    places = Place.objects.all()
 
     for order in orders:
         for item in order.items.select_related('product'):
@@ -133,28 +118,34 @@ def view_orders(request):
                 .values_list('restaurant__name', flat=True)
         order.restaurants = available_restaurants
 
-        try:
+        order_place, created = Place.objects.get_or_create(address=order.address)
+        if created:
             customer_coordinates = fetch_coordinates(
-                settings.YANDEX_GEOCODER_API_KEY,
+                YANDEX_GEOCODER_API_KEY,
                 order.address)
-            customer_coordinates_lon_lat = (customer_coordinates[1],
-                                            customer_coordinates[0])
-            restaurant_distances = []
-            for restaurant in order.restaurants:
-                restaurant_address = restaurants.get(name=restaurant)
+            order_place.lon, order_place.lat = customer_coordinates
+            order_place.save()
+            
+        restaurant_distances = []
+        for restaurant in order.restaurants:
+            restaurant = restaurants.get(name=restaurant)
+            restaurant_place, created = Place.objects.get_or_create(address=restaurant.address)
+            if created:
                 restaurant_coordinates = fetch_coordinates(
-                    settings.YANDEX_GEOCODER_API_KEY,
-                    restaurant_address)
-                restaurant_coordinates_lon_lat = (restaurant_coordinates[1],
-                                                  restaurant_coordinates[0])
-                restaurant_distance = round(distance.distance(
-                    customer_coordinates_lon_lat,
-                    restaurant_coordinates_lon_lat).km, 2)
-                restaurant_distances.append([restaurant, restaurant_distance])
-            restaurant_distances.sort(key=lambda x: x[1])
-            order.restaurant_distances = restaurant_distances
-        except RequestException:
-            print('Не возможно определить координаты')
+                    YANDEX_GEOCODER_API_KEY,
+                    restaurant.address)
+                restaurant_place.lon, restaurant_place.lat = restaurant_coordinates
+                restaurant_place.save()
+
+            restaurant_distance = round(distance.distance(
+                (order_place.lat,
+                 order_place.lon),
+                (restaurant_place.lat,
+                 restaurant_place.lon)).km, 2)
+            restaurant_distances.append((restaurant, restaurant_distance))
+        order.restaurant_distances = sorted(
+                    restaurant_distances, key=lambda x: x[1]
+                )
 
     return render(request,
                   template_name='order_items.html',
