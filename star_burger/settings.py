@@ -1,3 +1,4 @@
+
 import os
 
 import dj_database_url
@@ -9,13 +10,13 @@ env = Env()
 env.read_env()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
 SECRET_KEY = env('SECRET_KEY')
-DEBUG = env.bool('DEBUG', False)
+DEBUG = env.bool('DEBUG')
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
+ALLOWED_HOSTS = ['82.148.29.228', '127.0.0.1']
 YANDEX_GEOCODER_API_KEY = env('YANDEX_GEOCODER_API_KEY')
 
 INSTALLED_APPS = [
