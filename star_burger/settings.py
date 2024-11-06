@@ -20,6 +20,7 @@ ALLOWED_HOSTS = ['82.148.29.228', '127.0.0.1']
 YANDEX_GEOCODER_API_KEY = env('YANDEX_GEOCODER_API_KEY')
 ROLLBAR_ACCESS_TOKEN = env('ROLLBAR_ACCESS_TOKEN')
 ROLLBAR_ENVIRONMENT = env('ROLLBAR_ENVIRONMENT', default='production')
+DATABASE_URL = env('DATABASE_URL')
 
 INSTALLED_APPS = [
     'foodcartapp.apps.FoodcartappConfig',
@@ -97,9 +98,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:////{0}'.format(os.path.join(BASE_DIR, 'db.sqlite3'))
+    'default': dj_database_url.parse(
+        DATABASE_URL
     )
+}
+
+DATABASES['default']['OPTIONS'] = {
+    'options': '-c search_path=starburger_db_schema'
 }
 
 AUTH_PASSWORD_VALIDATORS = [
