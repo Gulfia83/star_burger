@@ -150,6 +150,46 @@ Parcel будет следить за файлами в каталоге `bundle
 - `YANDEX_GEOCODER__API_KEY` - API ключ для геокодера Яндекса. Подробнее см. [документацию Яндекса](https://developer.tech.yandex.ru/).
 - `ROLLBAR_ACCESS_TOKEN` - токен для Rollbar. [Инструкция для получения](https://rollbar.com/)
 - `ROLLBAR_ENVIRONMENT` - название окружения Rollbar. По умолчанию `production`.
+- `DATABASE_URL` - url для подключения к базе данных вида: "postgresql://mydb_user:password@localhost:port/mydb_name"
+
+В продакшн лучше использовать базу данных Postgres
+Для установки и настройки выполните следующие командыЖ
+```bash
+sudo apt install postgresql postgresql-contrib
+sudo su - postgres
+psql 
+CREATE DATABASE mydb_name; 
+CREATE USER mydb_user WITH PASSWORD 'password';
+ALTER ROLE mydb_user set client_encoding to 'utf8';
+ALTER ROLE mydb_user set default_transaction_isolation to 'read committed';
+ATTER ROLE mydb_user set timezone to 'UTC';
+grant all privileges on database mydb_name to mydb_user; # для версий до 15
+\connect mydb; # для версий 15+
+create schema myschema authorization mydb_user; # запомните название схемы
+\q
+exit
+```
+Далее перенесите данные из базы sqlite3 в json:
+```bash
+python3 manage.py dumpdata --exclude contenttypes > starburger_db.json  
+```
+Измените настройки DATABASES в settings.py:
+```py
+DATABASES = {
+    'default': dj_database_url.parse(
+        DATABASE_URL
+    )
+}
+
+DATABASES['default']['OPTIONS'] = {
+    'options': '-c search_path=starburger_db_schema'
+}
+```
+После сохранения файла настроек выполните следующие команды миграции и заполнения базы данными из json:
+```bash
+python3 manage.py migrate
+python3 manage.py loaddata starburger_db.json
+```
 
 ## Цели проекта
 
