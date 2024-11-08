@@ -16,7 +16,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG')
 
-ALLOWED_HOSTS = ['82.148.29.228', '127.0.0.1']
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 YANDEX_GEOCODER_API_KEY = env('YANDEX_GEOCODER_API_KEY')
 ROLLBAR_ACCESS_TOKEN = env('ROLLBAR_ACCESS_TOKEN')
 ROLLBAR_ENVIRONMENT = env('ROLLBAR_ENVIRONMENT', default='production')
@@ -106,7 +106,6 @@ DATABASES = {
 DATABASES['default']['OPTIONS'] = {
     'options': '-c search_path=starburger_db_schema'
 }
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
