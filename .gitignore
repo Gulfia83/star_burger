@@ -1,6 +1,7 @@
 bundles/**
 node_modules/
 media/
+static/
 starburger_db.json
 
 # Byte-compiled / optimized / DLL files
