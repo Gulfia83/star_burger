@@ -1,3 +1,4 @@
+
 import os
 
 import dj_database_url
@@ -13,9 +14,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
 SECRET_KEY = env('SECRET_KEY')
-DEBUG = env.bool('DEBUG', False)
+DEBUG = env.bool('DEBUG')
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
+ALLOWED_HOSTS = ['82.148.29.228', '127.0.0.1']
 YANDEX_GEOCODER_API_KEY = env('YANDEX_GEOCODER_API_KEY')
 ROLLBAR_ACCESS_TOKEN = env('ROLLBAR_ACCESS_TOKEN')
 ROLLBAR_ENVIRONMENT = env('ROLLBAR_ENVIRONMENT', default='production')
