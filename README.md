@@ -193,27 +193,9 @@ python3 manage.py loaddata starburger_db.json
 
 ## Автоматическое обновление кода на сервере
 
-Создать bush - скрипт:
-```sh
-nano deploy_star_burger.sh
-```
-- Поместить в него следующий код:
+В репозитории находится скрипт, облегчающий деплой, после каждого изменения в коде.
+Скрипт называется deploy_star_burger.sh
 
-```sh
-#!/bin/bash
-set -e
-cd /opt/star_burger
-git pull
-pip install -r requirements.txt
-npm ci --dev
-./node_modules/.bin/parcel watch bundles-src/index.js --dist-dir bundles --public-url="./"
-python3 manage.py collectstatic --noinput
-python3 manage.py migrate --noinput
-systemctl reload nginx
-source star_burger/.env
-curl -H "X-Rollbar-Access-Token: $ROLLBAR_ACCESS_TOKEN" -H "Content-Type: application/json" -X POST 'https://api.rollbar.com/api/1/deploy' -d '{"environment": "production", "revision": "'"$(git rev-parse HEAD)"'", "rollbar_name": "star_burger", "local_username": "your_name", "status": "succeeded"}'
-echo "Деплой завершен"
-```
 - Запустить скрипт:
 
 ```sh
