@@ -148,8 +148,8 @@ Parcel будет следить за файлами в каталоге `bundle
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
 - `YANDEX_GEOCODER__API_KEY` - API ключ для геокодера Яндекса. Подробнее см. [документацию Яндекса](https://developer.tech.yandex.ru/).
-- `ROLLBAR_ACCESS_TOKEN` - токен для Rollbar. [Инструкция для получения](https://rollbar.com/)
-- `ROLLBAR_ENVIRONMENT` - название окружения Rollbar. По умолчанию `production`.
+- `ROLLBAR_ACCESS_TOKEN` - токен для Rollbar. [Инструкция для получения](https://rollbar.com/). Необязательная переменная.
+- `ROLLBAR_ENVIRONMENT` - название окружения Rollbar. Необязательная переменная, по умолчанию `production`.
 - `DATABASE_URL` - url для подключения к базе данных вида: "postgresql://mydb_user:password@localhost:port/mydb_name"
 
 В продакшн лучше использовать базу данных Postgres
