@@ -4,7 +4,7 @@ services:
     container_name: 'star_burger_db'
     volumes:
     - db_data:/var/lib/postgresql/data
-    env_file: .env
+    env_file: ./star_burger/.env
     restart: always
     ports:
       - "5432:5432"
@@ -40,4 +40,6 @@ services:
     restart: always
 
 volumes:
-  db_data: 
+  db_data:
+  media:
+  bundles: 
