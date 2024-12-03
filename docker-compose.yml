@@ -30,6 +30,7 @@ services:
         && gunicorn -w 3 -b 0.0.0.0:8000 star_burger.wsgi:application"
     volumes:
       - ./static:/star_burger/static
+      - ./media:/star_burger/media
       - ./assets:/star_burger/assets
       - ./bundles:/star_burger/bundles
     ports:  
