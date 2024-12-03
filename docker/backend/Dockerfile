@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-WORKDIR /opt/star_burger
+WORKDIR /star_burger
 
 COPY requirements.txt .
 
